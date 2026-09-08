@@ -1,7 +1,28 @@
 import { useState } from "react";
 
 export default function Support() {
-  const [ticketSent, setTicketSent] = useState(false);
+  const [ticketId, setTicketId] = useState("");
+  const [category, setCategory] = useState("Payment Gateway Deduction without Receipt");
+  const [problem, setProblem] = useState("");
+  const token = localStorage.getItem("mahasetu_token");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:5000/api/grievance", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ category, problem }),
+      });
+      const data = await res.json();
+      setTicketId(data.ticketId);
+    } catch (err) {
+      alert("Could not register ticket");
+    }
+  };
 
   return (
     <div className="flex-1 min-h-screen bg-slate-50 p-6 md:p-8 space-y-6 font-sans">
@@ -13,31 +34,32 @@ export default function Support() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
           <h2 className="text-sm font-bold text-slate-800">Lodge an Electronic Grievance</h2>
-          {ticketSent ? (
+          {ticketId ? (
             <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold">
-              Grievance ticket #TKT-8842 created. An officer will resolve this within 48 hours.
+              Grievance ticket #{ticketId} created. An officer will resolve this within 48 hours.
             </div>
           ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setTicketSent(true);
-              }}
-              className="space-y-3 text-xs"
-            >
+            <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
                 <label className="block font-semibold text-slate-600 mb-1">Issue Category</label>
-                <select className="w-full border border-slate-200 rounded-xl p-2.5">
-                  <option>Payment Gateway Deduction without Receipt</option>
-                  <option>Document Upload & Format Error</option>
-                  <option>Delay beyond RTS Timeline</option>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-slate-200 rounded-xl p-2.5">
+                  <option value="Payment Gateway Deduction without Receipt">Payment Gateway Deduction without Receipt</option>
+                  <option value="Document Upload & Format Error">Document Upload & Format Error</option>
+                  <option value="Delay beyond RTS Timeline">Delay beyond RTS Timeline</option>
                 </select>
               </div>
               <div>
                 <label className="block font-semibold text-slate-600 mb-1">Describe Problem</label>
-                <textarea rows="4" className="w-full border border-slate-200 rounded-xl p-2.5" placeholder="Explain the error in detail..." required></textarea>
+                <textarea
+                  rows="4"
+                  value={problem}
+                  onChange={(e) => setProblem(e.target.value)}
+                  className="w-full border border-slate-200 rounded-xl p-2.5"
+                  placeholder="Explain the error in detail..."
+                  required
+                ></textarea>
               </div>
-              <button type="submit" className="bg-[#1b327b] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-blue-900">
+              <button type="submit" className="bg-[#1b327b] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-blue-900 cursor-pointer">
                 Submit Grievance
               </button>
             </form>

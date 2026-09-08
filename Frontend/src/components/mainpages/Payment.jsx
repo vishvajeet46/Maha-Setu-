@@ -1,17 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const initialPayments = [
-  { id: "PAY-1049", desc: "Shop & Establishment Registration Fee", appRef: "MH-2026-90214", amount: 450, status: "Pending" },
-  { id: "PAY-1052", desc: "Verification & Scrutiny Charges (NCL)", appRef: "MH-2026-91560", amount: 1200, status: "Pending" },
-  { id: "PAY-0982", desc: "Income Certificate Government Fee", appRef: "MH-2026-89421", amount: 53, status: "Paid" },
-];
+export default function Payment({ onRefresh }) {
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("mahasetu_token");
 
-export default function Payment() {
-  const [payments, setPayments] = useState(initialPayments);
+  const fetchPayments = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/payments", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) setPayments(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handlePayNow = (id) => {
-    setPayments((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Paid" } : p)));
-    alert("Payment successful via Maha-ePayment Gateway!");
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const handlePayNow = async (paymentId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/payments/${paymentId}/pay`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        alert("Payment verified successfully via GRAS gateway!");
+        fetchPayments();
+        if (onRefresh) onRefresh();
+      }
+    } catch (err) {
+      alert("Payment processing error");
+    }
   };
 
   return (
@@ -34,35 +59,43 @@ export default function Payment() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {payments.map((p) => (
-              <tr key={p.id}>
-                <td className="py-3.5 px-4 font-semibold text-slate-900">{p.id}</td>
-                <td className="py-3.5 px-4 font-medium text-slate-800">{p.desc}</td>
-                <td className="py-3.5 px-4 text-slate-500">{p.appRef}</td>
-                <td className="py-3.5 px-4 font-bold text-slate-900">₹{p.amount}</td>
-                <td className="py-3.5 px-4">
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                      p.status === "Paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                    }`}
-                  >
-                    {p.status}
-                  </span>
-                </td>
-                <td className="py-3.5 px-4 text-right">
-                  {p.status === "Pending" ? (
-                    <button
-                      onClick={() => handlePayNow(p.id)}
-                      className="bg-[#1b327b] text-white px-3 py-1 rounded-lg font-semibold hover:bg-blue-900 transition"
+            {payments.length > 0 ? (
+              payments.map((p) => (
+                <tr key={p.paymentId}>
+                  <td className="py-3.5 px-4 font-semibold text-slate-900">{p.paymentId}</td>
+                  <td className="py-3.5 px-4 font-medium text-slate-800">{p.desc}</td>
+                  <td className="py-3.5 px-4 text-slate-500">{p.appRef}</td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900">₹{p.amount}</td>
+                  <td className="py-3.5 px-4">
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                        p.status === "Paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                      }`}
                     >
-                      Pay Now
-                    </button>
-                  ) : (
-                    <button className="text-slate-400 font-semibold hover:underline">Receipt</button>
-                  )}
+                      {p.status}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4 text-right">
+                    {p.status === "Pending" ? (
+                      <button
+                        onClick={() => handlePayNow(p.paymentId)}
+                        className="bg-[#1b327b] text-white px-3 py-1 rounded-lg font-semibold hover:bg-blue-900 transition cursor-pointer"
+                      >
+                        Pay Now
+                      </button>
+                    ) : (
+                      <span className="text-emerald-700 font-semibold">Verified</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-slate-400">
+                  {loading ? "Loading dues..." : "No invoices pending payment."}
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

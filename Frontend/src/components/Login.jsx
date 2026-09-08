@@ -1,335 +1,285 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const Login = () => {
+const Login = ({ onClose, onLoginSuccess }) => {
   const [role, setRole] = useState("user");
   const [mode, setMode] = useState("login");
-  //   const [] = useState()
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  function handleSubmit(e) {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    age: "",
+    gender: "male",
+    employeeId: "",
+    department: "Revenue and Forest Department",
+  });
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-  }
+    setLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    const endpoint =
+      role === "admin"
+        ? mode === "signup"
+          ? "http://localhost:5000/api/auth/admin/signup"
+          : "http://localhost:5000/api/auth/admin/login"
+        : mode === "signup"
+        ? "http://localhost:5000/api/auth/citizen/signup"
+        : "http://localhost:5000/api/auth/citizen/login";
+
+    const payload =
+      role === "admin"
+        ? {
+            email: formData.email,
+            password: formData.password,
+            ...(mode === "signup" && {
+              name: formData.name,
+              employeeId: formData.employeeId,
+              department: formData.department,
+            }),
+          }
+        : {
+            email: formData.email,
+            password: formData.password,
+            ...(mode === "signup" && {
+              name: formData.name,
+              phone: formData.phone,
+              age: formData.age,
+              gender: formData.gender,
+            }),
+          };
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Authentication error");
+
+      localStorage.setItem("mahasetu_token", data.token);
+      localStorage.setItem("mahasetu_user", JSON.stringify(data.user));
+
+      setSuccessMessage(`Login successful! Redirecting to ${role === "admin" ? "Department Portal" : "Citizen Desk"}...`);
+
+      setTimeout(() => {
+        if (onLoginSuccess) onLoginSuccess(data.user);
+        if (onClose) onClose();
+      }, 700);
+    } catch (err) {
+      setErrorMessage(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div>
-      <div className="w-full text-cente ">
-        <button
-          type="button"
-          onClick={() => setRole("user")}
-          className={`w-1/2 border-2 text-2xl rounded-tl-2xl border-gray-500 ${role === "user" ? "bg-blue-900 text-white " : "text-black bg-gray-100 hover:bg-gray-200 "}`}
-        >
-          User / Citizen
-        </button>
-        <button
-          type="button"
-          onClick={() => setRole("admin")}
-          className={`w-1/2 border-2 text-2xl rounded-tr-2xl border-gray-500 ${role === "admin" ? "bg-blue-900 text-white " : "text-black bg-gray-100 hover:bg-gray-200 "}`}
-        >
-          Admin
-        </button>
-      </div>
-      <div className="w-full text-center flex justify-center items-center ">
-        <button
-          type="button"
-          onClick={() => setMode("login")}
-          className={`w-1/2 border-2 border-gray-500 text-[20px] ${mode === "login" ? (role === "user" ? "bg-blue-900 text-white " : "text-black bg-gray-100 hover:bg-gray-200 ") : "text-black bg-gray-100 hover:bg-gray-200 "}`}
-        >
-          Login
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("signup")}
-          className={`w-1/2 border-2 border-gray-500 text-[20px] ${mode === "signup" ? (role === "user" ? "bg-blue-900 text-white " : "text-black bg-gray-100 hover:bg-gray-200 ") : "text-black bg-gray-100 hover:bg-gray-200 "}`}
-        >
-          Sign Up
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("login")}
-          className={`w-1/2 border-2 border-gray-500 text-[20px] ${mode === "login" ? (role === "admin" ? "bg-blue-900 text-white " : "text-black bg-gray-100 hover:bg-gray-200 ") : "text-black bg-gray-100 hover:bg-gray-200 "}`}
-        >
-          Login
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("signup")}
-          className={`w-1/2 border-2 border-gray-500 text-[20px] ${mode === "signup" ? (role === "admin" ? "bg-blue-900 text-white " : "text-black bg-gray-100 hover:bg-gray-200 ") : "text-black bg-gray-100 hover:bg-gray-200 "}`}
-        >
-          Sign Up
-        </button>
-      </div>
-      <div className="w-full ">
-        <form action="" onSubmit={handleSubmit}>
-          {/* user login */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto" onClick={onClose}>
+      <div
+        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col font-sans border border-slate-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 z-20 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm cursor-pointer"
+          >
+            ✕
+          </button>
+        )}
 
-          {role === "user" && mode === "login" && (
-            <>
-              <div className="border-2 border-gray-500 w-full py-2 px-4 space-y-2 text-[18px] rounded-b-2xl bg-gray-200">
-                <br />
-                <label htmlFor="">Email :</label>
-                <input
-                  type="email"
-                  name=""
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br />
-                <br />
-                <label htmlFor="">Password :</label>
-                <input
-                  type="password"
-                  name=""
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br />
-                <br />
-                <button className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-2xl p-2">
-                  Login
-                </button>
-              </div>
-            </>
+        <div className="w-full flex shrink-0 border-b border-slate-200">
+          <button
+            type="button"
+            onClick={() => {
+              setRole("user");
+              setErrorMessage("");
+              setSuccessMessage("");
+            }}
+            className={`w-1/2 py-3.5 text-sm font-bold transition cursor-pointer ${
+              role === "user" ? "bg-[#1b327b] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            Citizen / User
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRole("admin");
+              setErrorMessage("");
+              setSuccessMessage("");
+            }}
+            className={`w-1/2 py-3.5 text-sm font-bold transition cursor-pointer ${
+              role === "admin" ? "bg-[#1b327b] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            Department Officer
+          </button>
+        </div>
+
+        <div className="w-full flex shrink-0 border-b border-slate-200 bg-slate-50">
+          <button
+            type="button"
+            onClick={() => {
+              setMode("login");
+              setErrorMessage("");
+            }}
+            className={`w-1/2 py-2.5 text-xs font-semibold cursor-pointer ${
+              mode === "login" ? "bg-white text-[#1b327b] border-b-2 border-[#1b327b]" : "text-slate-500"
+            }`}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("signup");
+              setErrorMessage("");
+            }}
+            className={`w-1/2 py-2.5 text-xs font-semibold cursor-pointer ${
+              mode === "signup" ? "bg-white text-[#1b327b] border-b-2 border-[#1b327b]" : "text-slate-500"
+            }`}
+          >
+            Register Account
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4">
+          {errorMessage && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl">
+              {errorMessage}
+            </div>
+          )}
+          {successMessage && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-xl">
+              {successMessage}
+            </div>
           )}
 
-          {/* user signup */}
-          {role === "user" && mode === "signup" && (
-            <>
-              <div className="border-2 border-gray-500 w-full py-2 px-4 space-y-2 text-[18px] rounded-b-2xl bg-gray-200">
-                <label htmlFor="">Name :</label>
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            {role === "admin" && mode === "signup" && (
+              <>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Assigned Department</label>
+                  <select
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    className="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-50 text-slate-800 focus:outline-none"
+                  >
+                    <option value="Revenue and Forest Department">Revenue and Forest Department</option>
+                    <option value="Labour Department">Labour Department</option>
+                    <option value="Social Justice Department">Social Justice Department</option>
+                    <option value="Public Health Department">Public Health Department</option>
+                    <option value="Agriculture Department">Agriculture Department</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Employee / Desk ID</label>
+                  <input
+                    type="text"
+                    name="employeeId"
+                    required
+                    value={formData.employeeId}
+                    onChange={handleInputChange}
+                    placeholder="e.g. MH-REV-2041"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-50 focus:outline-none"
+                  />
+                </div>
+              </>
+            )}
+
+            {mode === "signup" && (
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Full Legal Name</label>
                 <input
                   type="text"
-                  name=""
-                  id=""
+                  name="name"
                   required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Legal Name"
+                  className="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-50 focus:outline-none"
                 />
-                <br /> <br />
-                <label htmlFor="">Phone number :</label>
+              </div>
+            )}
+
+            {role === "user" && mode === "signup" && (
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Mobile Contact</label>
                 <input
                   type="tel"
-                  name=""
-                  id=""
+                  name="phone"
                   maxLength="10"
                   required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="10-digit mobile number"
+                  className="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-50 focus:outline-none"
                 />
-                <br />
-                <br />
-                <label htmlFor="">OTP :</label>
-                <input
-                  type="text"
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                  name="otp"
-                  id=""
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength="6"
-                  minLength="6"
-                  required
-                />
-                <br />
-                <br />
-                <label htmlFor="">Age :</label>
-                <input
-                  type="number"
-                  name="age"
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br />
-                <br />
-                <label htmlFor="" className="mr-34">
-                  Gender :
-                </label>
-                <input type="radio" name="gender" id="" />
-                <label htmlFor="" className="mr-3">
-                  Male
-                </label>
-                <input type="radio" name="gender" id="" />
-                <label htmlFor="" className="mr-3">
-                  female
-                </label>
-                <input type="radio" name="gender" id="" />
-                <label htmlFor="">Other</label>
-                <br />
-                <br />
-                <label htmlFor="">Email :</label>
-                <input
-                  type="email"
-                  name=""
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br />
-                <br />
-                <label htmlFor="">Password :</label>
-                <input
-                  type="password"
-                  name=""
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br />
-                <br />
-                <button className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-2xl p-2">
-                  Sign UP
-                </button>
               </div>
-            </>
-          )}
+            )}
 
-          {/* admin login */}
-          {role === "admin" && mode === "login" && (
-            <>
-              <div className="border-2 border-gray-500 w-full py-2 px-4 space-y-2 text-[18px] rounded-b-2xl bg-gray-200">
-                <br />
-                <label htmlFor="">Employee ID</label>
-                <input
-                  type="text"
-                  name=""
-                  id=""
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br />
-                <br />
-                <label htmlFor="">Email :</label>
-                <input
-                  type="email"
-                  name=""
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br />
-                <br />
-                <label htmlFor="" className="">
-                  Password :
-                </label>
-                <input
-                  type="password"
-                  name=""
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5 "
-                />
-                <br />
-                <br />
-                <button className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-2xl p-2">
-                  Login
-                </button>
-              </div>
-            </>
-          )}
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Email Address</label>
+              <input
+                type="email"
+                name="email"
+                required
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="example@domain.com"
+                className="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-50 focus:outline-none"
+              />
+            </div>
 
-          {/* admin signup */}
-          {role === "admin" && mode === "signup" && (
-            <>
-              <div className="border-2 border-gray-500 w-full py-2 px-4 space-y-2 text-[18px] rounded-b-2xl bg-gray-200">
-                <label htmlFor="">Department Name :</label>
-                <select
-                  name=""
-                  id=""
-                  className=" mx-2 text-[14px] border-2 rounded-[4px] border-blue-900"
-                >
-                  <option value="">Agriculture Department</option>
-                  <option value="">
-                    Food, Civil Supplies and Consumer Protection Department
-                  </option>
-                  <option value="">
-                    Industries, Energy, and Labour Department
-                  </option>
-                  <option value="">
-                    Public Health and Family Welfare Department
-                  </option>
-                  <option value="">Revenue and Forest Department</option>
-                  <option value="">
-                    Rural Development and Panchayat Raj Department
-                  </option>
-                  <option value="">
-                    Social Justice and Special Assistance Department
-                  </option>
-                  <option value="">Transport and Ports Department (RTO)</option>
-                  <option value="">Urban Development Department</option>
-                  <option value="">
-                    Women and Child Development Department
-                  </option>
-                </select>
-                <br />
-                <label htmlFor="">Employee ID</label>
-                <input
-                  type="text"
-                  name=""
-                  id=""
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br />
-                <br />
-                <label htmlFor="">Name :</label>
-                <input
-                  type="text"
-                  name=""
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br /> <br />
-                <label htmlFor="">Phone number :</label>
-                <input
-                  type="tel"
-                  name=""
-                  id=""
-                  maxLength="10"
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br /> <br />
-                <label htmlFor="">OTP :</label>
-                <input
-                  type="text"
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                  name="otp"
-                  id=""
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength="6"
-                  minLength="6"
-                  required
-                />
-                <br />
-                <br />
-                <label htmlFor="">Email :</label>
-                <input
-                  type="email"
-                  name=""
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5"
-                />
-                <br />
-                <br />
-                <label htmlFor="" className="">
-                  Password :
-                </label>
-                <input
-                  type="password"
-                  name=""
-                  id=""
-                  required
-                  className="border-2 border-blue-900 rounded-[4px] absolute right-5 "
-                />
-                <br />
-                <br />
-                <button className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-2xl p-2">
-                  Sign Up
-                </button>
-              </div>
-            </>
-          )}
-        </form>
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Password</label>
+              <input
+                type="password"
+                name="password"
+                required
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="••••••••"
+                className="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-50 focus:outline-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 bg-[#1b327b] hover:bg-[#152763] disabled:bg-slate-400 text-white font-bold py-3 rounded-xl transition cursor-pointer text-sm"
+            >
+              {loading
+                ? "Verifying..."
+                : mode === "login"
+                ? `Log in to ${role === "admin" ? "Department Portal" : "Citizen Desk"}`
+                : "Complete Registration"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

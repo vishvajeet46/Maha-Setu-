@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 const Icons = {
   Dashboard: () => (
     <svg className="w-5 h-5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,6 +40,8 @@ const Icons = {
 };
 
 const NavBar = ({ activeItem = "Dashboard", setActiveItem }) => {
+  const navigate = useNavigate();
+
   const mainNavItems = [
     { name: "Dashboard", icon: Icons.Dashboard },
     { name: "My Applications", icon: Icons.Applications },
@@ -51,27 +55,27 @@ const NavBar = ({ activeItem = "Dashboard", setActiveItem }) => {
     { name: "Settings", icon: Icons.Settings },
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem("mahasetu_token");
+    localStorage.removeItem("mahasetu_user");
+    navigate("/");
+  };
+
   return (
     <aside className="w-64 min-h-screen bg-[#1b327b] text-white flex flex-col justify-between p-4 select-none shrink-0 font-sans">
       <div>
-        {/* Brand / Logo Section */}
         <div className="flex items-center gap-3 px-2 py-4 mb-6">
           <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-md">
             <span className="text-[#1b327b] font-black text-xl tracking-wider">M</span>
           </div>
           <div className="flex flex-col">
             <h1 className="text-lg font-bold tracking-wide leading-tight">MAHA-SETU</h1>
-            <span className="text-[11px] text-blue-200 leading-tight">
-              Unified Citizen & Business Portal
-            </span>
+            <span className="text-[11px] text-blue-200 leading-tight">Unified Citizen & Business</span>
           </div>
         </div>
 
-        {/* MAIN Section */}
         <div className="mb-6">
-          <p className="px-3 text-xs font-semibold text-blue-300/70 tracking-wider uppercase mb-3">
-            Main
-          </p>
+          <p className="px-3 text-xs font-semibold text-blue-300/70 tracking-wider uppercase mb-3">Main</p>
           <ul className="space-y-1">
             {mainNavItems.map((item) => {
               const Icon = item.icon;
@@ -80,10 +84,8 @@ const NavBar = ({ activeItem = "Dashboard", setActiveItem }) => {
                 <li key={item.name}>
                   <button
                     onClick={() => setActiveItem && setActiveItem(item.name)}
-                    className={`w-full flex items-center px-3.5 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium cursor-pointer ${
-                      isActive
-                        ? "bg-[#2546a8] text-white shadow-sm font-semibold"
-                        : "text-blue-100/80 hover:bg-white/10 hover:text-white"
+                    className={`w-full flex items-center px-3.5 py-2.5 rounded-xl transition text-sm font-medium cursor-pointer ${
+                      isActive ? "bg-[#2546a8] text-white shadow-sm font-semibold" : "text-blue-100/80 hover:bg-white/10"
                     }`}
                   >
                     <div className="flex items-center gap-3.5">
@@ -97,11 +99,8 @@ const NavBar = ({ activeItem = "Dashboard", setActiveItem }) => {
           </ul>
         </div>
 
-        {/* WORKSPACE Section */}
         <div>
-          <p className="px-3 text-xs font-semibold text-blue-300/70 tracking-wider uppercase mb-3">
-            Workspace
-          </p>
+          <p className="px-3 text-xs font-semibold text-blue-300/70 tracking-wider uppercase mb-3">Workspace</p>
           <ul className="space-y-1">
             {workspaceNavItems.map((item) => {
               const Icon = item.icon;
@@ -110,10 +109,8 @@ const NavBar = ({ activeItem = "Dashboard", setActiveItem }) => {
                 <li key={item.name}>
                   <button
                     onClick={() => setActiveItem && setActiveItem(item.name)}
-                    className={`w-full flex items-center px-3.5 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium cursor-pointer ${
-                      isActive
-                        ? "bg-[#2546a8] text-white shadow-sm font-semibold"
-                        : "text-blue-100/80 hover:bg-white/10 hover:text-white"
+                    className={`w-full flex items-center px-3.5 py-2.5 rounded-xl transition text-sm font-medium cursor-pointer ${
+                      isActive ? "bg-[#2546a8] text-white shadow-sm font-semibold" : "text-blue-100/80 hover:bg-white/10"
                     }`}
                   >
                     <div className="flex items-center gap-3.5">
@@ -128,15 +125,17 @@ const NavBar = ({ activeItem = "Dashboard", setActiveItem }) => {
         </div>
       </div>
 
-      {/* Footer / System Status Section */}
-      <div className="pt-4 border-t border-blue-400/20 px-2 space-y-2">
+      <div className="pt-4 border-t border-blue-400/20 px-2 space-y-3">
+        <button
+          onClick={handleLogout}
+          className="w-full bg-rose-600/80 hover:bg-rose-600 text-white py-2 rounded-xl text-xs font-semibold cursor-pointer transition"
+        >
+          Logout
+        </button>
         <div className="flex items-center gap-2 text-xs text-blue-200">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>All systems operational</span>
+          <span>Gateway Online</span>
         </div>
-        <p className="text-[11px] text-blue-300/60">
-          © Government of Maharashtra
-        </p>
       </div>
     </aside>
   );
