@@ -34,11 +34,10 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, Postman) or matched origins
       if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
         callback(null, true);
       } else {
-        callback(null, true); // Fallback to allow connection
+        callback(null, true);
       }
     },
     credentials: true,
@@ -47,7 +46,6 @@ app.use(
   })
 );
 
-app.options("*", cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
