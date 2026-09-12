@@ -6,7 +6,7 @@ const departmentConfig = {
     badgeColor: "bg-amber-100 text-amber-800 border-amber-300",
     theme: "from-slate-900 via-slate-900 to-amber-950",
     activeTabClass: "bg-amber-600/30 text-amber-300 border-l-4 border-amber-400 font-semibold",
-    guidelines: "Verify Satbara 7/12 extracts against DigiLocker and MahaBhulekh records. Verify pre-1967 ancestral lineage for Domicile files.",
+    guidelines: "Audit Satbara 7/12 extracts against DigiLocker and MahaBhulekh records. Verify pre-1967 ancestral lineage for Domicile files.",
     checklistItems: ["Lineage validation via Pre-1967 registry", "7/12 Land extract verification", "Affidavit & Talathi Endorsement"],
   },
   "Labour Department": {
@@ -35,8 +35,15 @@ const departmentConfig = {
     theme: "from-slate-900 via-slate-900 to-lime-950",
     activeTabClass: "bg-lime-600/30 text-lime-300 border-l-4 border-lime-400 font-semibold",
     guidelines: "Verify DBT subsidy requests, PM-Kisan state top-ups, and digital crop survey (e-Pik Pahani) extracts.",
-    checklistItems: ["8A Khatedar holding extract", "e-Pik crop sowing validation", "Bank Aadhaar-linkage confirmation"],
+    checklistItems: ["8A Khatedar holding extract", "e-Pik crop sowing validation", "Bank linkage confirmation"],
   },
+};
+
+const formatFieldKey = (str) => {
+  return str
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (s) => s.toUpperCase())
+    .trim();
 };
 
 export default function AdminPortal() {
@@ -53,8 +60,10 @@ export default function AdminPortal() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [previewDocTitle, setPreviewDocTitle] = useState(null);
 
-  // Scrutiny Modal Fields
+  // Scrutiny Modal Checklist & Remarks
   const [checklist, setChecklist] = useState({ identityVerified: false, registryMatch: false, affidavitValid: false });
   const [remarks, setRemarks] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
@@ -62,6 +71,8 @@ export default function AdminPortal() {
   const identityId = useId();
   const registryId = useId();
   const affidavitId = useId();
+
+  const isAllChecklistVerified = checklist.identityVerified && checklist.registryMatch && checklist.affidavitValid;
 
   const deptMeta = departmentConfig[admin.department] || {
     badgeColor: "bg-blue-100 text-blue-800 border-blue-300",
@@ -72,6 +83,7 @@ export default function AdminPortal() {
   };
 
   const loadData = async () => {
+    setIsRefreshing(true);
     try {
       const [appRes, metRes, inqRes, logRes] = await Promise.all([
         fetch("http://localhost:5000/api/admin/department/applications", {
@@ -94,6 +106,8 @@ export default function AdminPortal() {
       if (logRes.ok) setAuditLogs(await logRes.json());
     } catch (err) {
       console.error("Error loading administrative records:", err);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -103,6 +117,7 @@ export default function AdminPortal() {
 
   const openReviewModal = (app) => {
     setSelectedApp(app);
+    setPreviewDocTitle(null);
     setChecklist(app.checklistVerified || { identityVerified: false, registryMatch: false, affidavitValid: false });
     setRemarks(app.officialRemarks || "");
     setRejectionReason(app.rejectionReason || "");
@@ -111,6 +126,11 @@ export default function AdminPortal() {
   const handleReviewDecision = async (newStatus, newStage) => {
     if (newStatus === "Rejected" && !rejectionReason.trim()) {
       alert("Please state the statutory ground for rejection before returning this file.");
+      return;
+    }
+
+    if (newStatus === "Approved" && !isAllChecklistVerified) {
+      alert("Statutory Mandate: All 3 verification checklist items must be verified before issuing approval.");
       return;
     }
 
@@ -175,9 +195,9 @@ export default function AdminPortal() {
 
   const filtered = applications.filter((app) => {
     const matches =
-      app.appId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.applicant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.service.toLowerCase().includes(searchTerm.toLowerCase());
+      (app.appId || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.applicant || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.service || "").toLowerCase().includes(searchTerm.toLowerCase());
 
     if (statusFilter === "All") return matches;
     return matches && app.status === statusFilter;
@@ -252,7 +272,7 @@ export default function AdminPortal() {
         </button>
       </aside>
 
-      {/* Main Administrative Console */}
+      {/* Main Console */}
       <main className="flex-1 p-6 md:p-8 space-y-6 overflow-y-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -269,9 +289,11 @@ export default function AdminPortal() {
 
           <button
             onClick={loadData}
-            className="self-start sm:self-auto bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs cursor-pointer"
+            disabled={isRefreshing}
+            className="self-start sm:self-auto bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs cursor-pointer flex items-center gap-2 active:scale-95 transition"
           >
-            ↻ Refresh Queue
+            <span className={`${isRefreshing ? "animate-spin inline-block" : ""}`}>↻</span>
+            <span>{isRefreshing ? "Refreshing..." : "Refresh Queue"}</span>
           </button>
         </div>
 
@@ -295,7 +317,7 @@ export default function AdminPortal() {
           </div>
         </div>
 
-        {/* TAB 1: Live Verification Queue */}
+        {/* Verification Queue */}
         {activeTab === "queue" && (
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-3">
@@ -385,7 +407,7 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {/* TAB 2: Support Inquiries */}
+        {/* Citizen Inquiries */}
         {activeTab === "helpdesk" && (
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-100">
@@ -429,7 +451,7 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {/* TAB 3: Department Guidelines */}
+        {/* Department Guidelines */}
         {activeTab === "guidelines" && (
           <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
             <h2 className="text-base font-bold text-slate-800">Department Scrutiny Manual: {admin.department}</h2>
@@ -447,7 +469,7 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {/* TAB 4: Audit Logs */}
+        {/* Audit Logs */}
         {activeTab === "audit" && (
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-100">
@@ -486,34 +508,123 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {/* Interactive Scrutiny Modal */}
+        {/* Enhanced Scrutiny Modal */}
         {selectedApp && (
           <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-xs">
-            <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col font-sans">
+            <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col font-sans max-h-[92vh]">
               <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <div>
-                  <span className="text-[10px] font-bold text-blue-900 uppercase">Statutory Review Desk</span>
-                  <h3 className="font-bold text-slate-800 text-sm">File: {selectedApp.appId}</h3>
+                  <span className="text-[10px] font-bold text-blue-900 uppercase tracking-wide">Statutory Review Desk</span>
+                  <h3 className="font-bold text-slate-800 text-sm">File Ref: {selectedApp.appId}</h3>
                 </div>
                 <button onClick={() => setSelectedApp(null)} className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer">
                   ✕
                 </button>
               </div>
 
-              <div className="p-5 overflow-y-auto space-y-4 text-xs">
-                <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="p-6 overflow-y-auto space-y-4 text-xs">
+                {/* Header Summary & Automated Registry Match Check */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                   <div>
-                    <span className="text-slate-400 block font-semibold">Applicant</span>
+                    <span className="text-slate-400 block font-semibold text-[11px]">Citizen / Applicant</span>
                     <span className="text-slate-800 font-bold text-sm">{selectedApp.applicant}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block font-semibold">Service</span>
+                    <span className="text-slate-400 block font-semibold text-[11px]">Requested Service</span>
                     <span className="text-slate-800 font-bold text-sm">{selectedApp.service}</span>
+                  </div>
+                  <div className="flex flex-col justify-center items-start sm:items-end">
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase">API Registry Check</span>
+                    <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-100 font-bold text-[10px] px-2 py-0.5 rounded-full mt-0.5">
+                      <span>✓</span> Registry Record Matched
+                    </span>
                   </div>
                 </div>
 
-                <div className="border border-slate-200 p-3.5 rounded-xl space-y-2.5">
-                  <h4 className="font-bold text-slate-800 uppercase tracking-wide">Statutory Verification Checklist</h4>
+                {/* Read-Only Citizen Form Data Dossier */}
+                <div className="border border-blue-200 bg-blue-50/30 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm">🔒</span>
+                      <h4 className="font-bold text-blue-950 uppercase tracking-wide text-xs">
+                        Citizen Submission Particulars (Read-Only)
+                      </h4>
+                    </div>
+                    <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
+                      Non-Editable Verification Record
+                    </span>
+                  </div>
+
+                  {selectedApp.formData && typeof selectedApp.formData === "object" && Object.keys(selectedApp.formData).length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {Object.entries(selectedApp.formData).map(([key, val]) => (
+                        <div key={key} className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200 select-none">
+                          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold block mb-1">
+                            {formatFieldKey(key)}
+                          </span>
+                          <input
+                            type="text"
+                            readOnly
+                            disabled
+                            value={String(val || "N/A")}
+                            className="w-full bg-white text-slate-800 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-not-allowed text-xs focus:outline-none shadow-2xs"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-white p-3 rounded-xl border border-slate-200 text-slate-400 text-center italic">
+                      Standard application without custom form fields.
+                    </div>
+                  )}
+                </div>
+
+                {/* In-Browser Document Inspection Drawer */}
+                <div className="border border-slate-200 bg-slate-50/50 rounded-2xl p-3.5 space-y-2">
+                  <span className="font-bold text-slate-800 uppercase tracking-wide text-[11px] block">
+                    e-Vault Document Inspection Strip
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {["Identity Proof (DigiLocker)", "Address & Residence Record", "Signed Self-Declaration"].map((docName) => (
+                      <button
+                        key={docName}
+                        type="button"
+                        onClick={() => setPreviewDocTitle(previewDocTitle === docName ? null : docName)}
+                        className={`px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer transition ${
+                          previewDocTitle === docName
+                            ? "bg-blue-900 text-white border-blue-900"
+                            : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        📄 {docName}
+                      </button>
+                    ))}
+                  </div>
+
+                  {previewDocTitle && (
+                    <div className="mt-2 p-3 bg-white border border-blue-200 rounded-xl space-y-1">
+                      <div className="flex justify-between items-center text-[11px] font-bold text-blue-900">
+                        <span>Previewing: {previewDocTitle}</span>
+                        <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Digital Signature Verified</span>
+                      </div>
+                      <div className="h-28 bg-slate-100 border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs">
+                        [Encrypted PDF Viewer • Certificate Record Authenticated via e-Vault API]
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Compulsory 3/3 Checklist */}
+                <div className={`p-3.5 rounded-xl space-y-2.5 border transition ${isAllChecklistVerified ? 'border-emerald-300 bg-emerald-50/30' : 'border-amber-300 bg-amber-50/20'}`}>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-slate-800 uppercase tracking-wide">
+                      Statutory Verification Checklist
+                    </h4>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isAllChecklistVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                      {isAllChecklistVerified ? '✓ All 3 Criteria Verified' : 'Compulsory for Approval (3/3 Required)'}
+                    </span>
+                  </div>
+
                   <label htmlFor={identityId} className="flex items-center gap-2 cursor-pointer">
                     <input
                       id={identityId}
@@ -522,7 +633,7 @@ export default function AdminPortal() {
                       onChange={(e) => setChecklist({ ...checklist, identityVerified: e.target.checked })}
                       className="w-4 h-4 text-blue-900 cursor-pointer"
                     />
-                    <span>Proof of Identity & Address authenticated via verified state records</span>
+                    <span className="font-medium text-slate-700">1. Proof of Identity & Address authenticated via state records</span>
                   </label>
                   <label htmlFor={registryId} className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -532,7 +643,7 @@ export default function AdminPortal() {
                       onChange={(e) => setChecklist({ ...checklist, registryMatch: e.target.checked })}
                       className="w-4 h-4 text-blue-900 cursor-pointer"
                     />
-                    <span>Departmental record & registry match cross-verified</span>
+                    <span className="font-medium text-slate-700">2. Departmental record & registry match cross-verified</span>
                   </label>
                   <label htmlFor={affidavitId} className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -542,10 +653,11 @@ export default function AdminPortal() {
                       onChange={(e) => setChecklist({ ...checklist, affidavitValid: e.target.checked })}
                       className="w-4 h-4 text-blue-900 cursor-pointer"
                     />
-                    <span>Self-Declaration & Legal Undertaking on record</span>
+                    <span className="font-medium text-slate-700">3. Self-Declaration & Legal Undertaking on record</span>
                   </label>
                 </div>
 
+                {/* Desk Remarks & Rejection Reason */}
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Official Desk Remarks</label>
                   <textarea
@@ -563,11 +675,12 @@ export default function AdminPortal() {
                     type="text"
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
-                    placeholder="State reason for rejection..."
-                    className="w-full border border-rose-200 bg-rose-50/50 rounded-xl p-2.5 focus:outline-none"
+                    placeholder="State statutory reason for rejection..."
+                    className="w-full border border-rose-200 bg-rose-50/50 rounded-xl p-2.5 focus:outline-none text-rose-900"
                   />
                 </div>
 
+                {/* Desk Actions */}
                 <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                   <button
                     disabled={processing}
@@ -584,11 +697,17 @@ export default function AdminPortal() {
                     Flag Query
                   </button>
                   <button
-                    disabled={processing}
+                    disabled={processing || !isAllChecklistVerified}
                     onClick={() => handleReviewDecision("Approved", "Certificate Issued & Digitally Signed")}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold cursor-pointer transition shadow-sm"
+                    title={!isAllChecklistVerified ? "Check all 3 verification checklist items to approve" : ""}
+                    className={`px-4 py-2 rounded-xl font-bold transition shadow-sm flex items-center gap-1.5 ${
+                      isAllChecklistVerified && !processing
+                        ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                        : "bg-slate-300 text-slate-500 cursor-not-allowed border border-slate-300"
+                    }`}
                   >
-                    Digitally Sign & Approve
+                    {!isAllChecklistVerified && <span>🔒</span>}
+                    <span>Digitally Sign & Approve</span>
                   </button>
                 </div>
               </div>

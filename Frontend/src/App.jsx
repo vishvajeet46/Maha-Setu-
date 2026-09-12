@@ -1,88 +1,91 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import AboutSetu from "./components/AboutSetu";
 import Body from "./components/Body";
-import Footer from "./components/Footer";
-import HelpSupport from "./components/HelpSupport";
 import NavBar from "./components/NavBar";
-import Homepage from "./components/mainpages/Homepage";
-import AdminPortal from "./components/mainpages/AdminPortal";
+import Footer from "./components/Footer";
+import AboutSetu from "./components/AboutSetu";
+import HelpSupport from "./components/HelpSupport";
+import Homepage from "./components/mainpages/homepage";
+import AdminPortal from "./components/AdminPortal";
 
-const ProtectedRoute = ({ children, allowedRole }) => {
+function ProtectedUserRoute({ children }) {
   const token = localStorage.getItem("mahasetu_token");
   const user = JSON.parse(localStorage.getItem("mahasetu_user") || "{}");
-
-  if (!token) return <Navigate to="/" replace />;
-  if (allowedRole && user.role !== allowedRole) {
-    return <Navigate to={user.role === "admin" ? "/admin-dashboard" : "/dashboard"} replace />;
-  }
+  if (!token || user.role === "admin") return <Navigate to="/" replace />;
   return children;
-};
+}
 
-const App = () => {
+function ProtectedAdminRoute({ children }) {
+  const token = localStorage.getItem("mahasetu_token");
+  const user = JSON.parse(localStorage.getItem("mahasetu_user") || "{}");
+  if (!token || user.role !== "admin") return <Navigate to="/" replace />;
+  return children;
+}
+
+export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Citizen Portal */}
         <Route
           path="/"
           element={
-            <>
+            <div className="flex flex-col min-h-screen">
               <NavBar />
-              <div className="pt-16">
+              <div className="flex-1 pt-24">
                 <Body />
               </div>
               <Footer />
-            </>
+            </div>
           }
         />
         <Route
           path="/about/setu"
           element={
-            <>
+            <div className="flex flex-col min-h-screen">
               <NavBar />
-              <div className="pt-16">
+              <div className="flex-1 pt-24">
                 <AboutSetu />
               </div>
               <Footer />
-            </>
+            </div>
           }
         />
         <Route
           path="/help-support"
           element={
-            <>
+            <div className="flex flex-col min-h-screen">
               <NavBar />
-              <div className="pt-16">
+              <div className="flex-1 pt-24">
                 <HelpSupport />
               </div>
               <Footer />
-            </>
+            </div>
           }
         />
 
-        {/* Citizen Portal */}
+        {/* Protected Citizen Dashboard */}
         <Route
-          path="/dashboard/*"
+          path="/dashboard"
           element={
-            <ProtectedRoute allowedRole="user">
+            <ProtectedUserRoute>
               <Homepage />
-            </ProtectedRoute>
+            </ProtectedUserRoute>
           }
         />
 
-        {/* Department Admin Portal */}
+        {/* Protected Department Admin Portal */}
         <Route
-          path="/admin-dashboard/*"
+          path="/admin-dashboard"
           element={
-            <ProtectedRoute allowedRole="admin">
+            <ProtectedAdminRoute>
               <AdminPortal />
-            </ProtectedRoute>
+            </ProtectedAdminRoute>
           }
         />
 
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
-};
-
-export default App;
+}

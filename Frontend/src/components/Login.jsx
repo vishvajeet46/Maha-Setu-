@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
-const Login = ({ onClose, onLoginSuccess }) => {
-  const [role, setRole] = useState("user");
+const Login = ({ defaultRole = "user", onClose, onLoginSuccess }) => {
+  const [role, setRole] = useState(defaultRole);
   const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");

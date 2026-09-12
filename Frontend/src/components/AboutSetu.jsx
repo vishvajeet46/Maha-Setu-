@@ -1,7 +1,7 @@
 const AboutSetu = () => {
   return (
     <div className="mx-3 mb-6 space-y-5 text-justify">
-      <div className="mt-14 space-y-1">
+      <div className="mt-4 space-y-1">
         <div className="text-4xl font-bold text-blue-900">About MAHA-SETU</div>
         <div className="text-[22px] font-semibold">The Core Challenge </div>
         <p>
@@ -12,7 +12,7 @@ const AboutSetu = () => {
       <div>
         <div className="text-[22px] font-semibold">Our Mission</div>
         <p>
-          To eliminate administrative bottlenecks duplicate verifications, and physical paperwork by enabling secure, real-time machine-to-machine data exchanges under India’s National Enterprise Architecture standards.
+          To eliminate administrative bottlenecks, duplicate verifications, and physical paperwork by enabling secure, real-time machine-to-machine data exchanges under India’s National Enterprise Architecture standards.
         </p>
       </div>
       <div>
@@ -22,7 +22,7 @@ const AboutSetu = () => {
             <span className="text-[18px] font-[480]">Federated Single Sign-On (SSO): </span>Access all state welfare, licensing, and municipal services through one unified login powered by MeriPehchan and DigiLocker.
           </li>
           <li>
-            <span className="text-[18px] font-[480]">Consent-Driven Exchange (DEPA): </span>Built in compliance with the Digital Personal Data Protection (DPDP) Act.  Inter-departmental data queries occur strictly with purpose-bound, revocable citizen authorization.
+            <span className="text-[18px] font-[480]">Consent-Driven Exchange (DEPA): </span>Built in compliance with the Digital Personal Data Protection (DPDP) Act. Inter-departmental data queries occur strictly with purpose-bound, revocable citizen authorization.
           </li>
           <li>
             <span className="text-[18px] font-[480]">Automated Data Federation: </span>Replaces manual document scans. System registries (such as MahaBhulekh for 7/12 land extracts and Social Welfare for caste status) communicate directly through standardized canonical APIs.

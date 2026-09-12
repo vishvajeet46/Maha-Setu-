@@ -16,7 +16,6 @@ export default function Status({ applications = [] }) {
     if (!appId.trim()) return;
     setError("");
 
-    // Check memory first
     const localMatch = applications.find(
       (a) => a.appId.toLowerCase() === appId.trim().toLowerCase()
     );
@@ -26,7 +25,6 @@ export default function Status({ applications = [] }) {
       return;
     }
 
-    // Query backend public tracking
     try {
       const res = await fetch(`http://localhost:5000/api/tracking/${appId.trim()}`);
       const data = await res.json();
@@ -91,26 +89,49 @@ export default function Status({ applications = [] }) {
             </div>
 
             {/* Stepper Timeline */}
-            <div className="space-y-4 pl-3 border-l-2 border-blue-600">
+            <div className="space-y-5 pl-3 border-l-2 border-blue-600">
               <div className="relative">
                 <span className="absolute -left-[19px] top-1 w-3 h-3 bg-blue-600 rounded-full"></span>
                 <p className="text-xs font-bold text-slate-800">Form Submitted Online</p>
                 <p className="text-[11px] text-slate-400">Date: {trackedRecord.appliedDate}</p>
               </div>
+
               <div className="relative">
                 <span
                   className={`absolute -left-[19px] top-1 w-3 h-3 rounded-full ${
-                    trackedRecord.status === "Approved" ? "bg-emerald-600" : "bg-amber-500"
+                    trackedRecord.status === "Approved"
+                      ? "bg-emerald-600"
+                      : trackedRecord.status === "Rejected"
+                      ? "bg-rose-600"
+                      : "bg-amber-500"
                   }`}
                 ></span>
                 <p className="text-xs font-bold text-slate-800">Department Review Stage</p>
                 <p className="text-[11px] text-slate-600 font-semibold">{trackedRecord.stage}</p>
+
                 {trackedRecord.officialRemarks && (
                   <p className="text-[11px] text-slate-500 italic mt-0.5">
                     Note: {trackedRecord.officialRemarks}
                   </p>
                 )}
               </div>
+
+              {trackedRecord.status === "Rejected" && (
+                <div className="relative">
+                  <span className="absolute -left-[19px] top-1 w-3 h-3 bg-rose-600 rounded-full"></span>
+                  <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl space-y-1">
+                    <p className="text-xs font-bold text-rose-800">Application Rejected & Returned</p>
+                    <p className="text-xs text-rose-700">
+                      <strong>Reason: </strong>
+                      {trackedRecord.rejectionReason || "Requirements not fulfilled under state guidelines."}
+                    </p>
+                    <p className="text-[10px] text-rose-500 mt-1">
+                      You may submit a fresh application or appeal via the Grievance Helpdesk.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {trackedRecord.status === "Approved" && (
                 <div className="relative">
                   <span className="absolute -left-[19px] top-1 w-3 h-3 bg-emerald-600 rounded-full"></span>

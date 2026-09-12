@@ -1,31 +1,151 @@
 import { useState } from "react";
 
 const availableServices = [
-  { id: "s1", title: "Income Certificate", dept: "Revenue and Forest Department", days: "7 Days", fee: 53 },
-  { id: "s2", title: "Domicile & Nationality Certificate", dept: "Revenue and Forest Department", days: "15 Days", fee: 53 },
-  { id: "s3", title: "Caste Certificate", dept: "Social Justice Department", days: "21 Days", fee: 53 },
-  { id: "s4", title: "Non-Creamy Layer (NCL) Certificate", dept: "Social Justice Department", days: "21 Days", fee: 53 },
-  { id: "s5", title: "Shop & Establishment (Gumasta License)", dept: "Labour Department", days: "1 Day", fee: 450 },
-  { id: "s6", title: "Trade License Renewal", dept: "Labour Department", days: "3 Days", fee: 200 },
-  { id: "s7", title: "Disability Welfare Assistance", dept: "Public Health Department", days: "10 Days", fee: 0 },
-  { id: "s8", title: "Shetkari Krishi Yojana Assistance", dept: "Agriculture Department", days: "12 Days", fee: 0 },
+  {
+    id: "s1",
+    title: "Income Certificate",
+    dept: "Revenue and Forest Department",
+    days: "7 Days",
+    fee: 53,
+    fields: [
+      { name: "applicantName", label: "Full Name of Applicant", type: "text", placeholder: "e.g. Ramesh Shankar Patil", required: true },
+      { name: "annualIncome", label: "Total Annual Family Income (INR)", type: "number", placeholder: "e.g. 180000", required: true },
+      { name: "incomeSource", label: "Primary Source of Income", type: "select", options: ["Agriculture", "Salaried Employment", "Business / Trade", "Daily Wage Labor"], required: true },
+      { name: "tehsil", label: "Taluka / Tehsil Office", type: "text", placeholder: "e.g. Haveli, Pune", required: true },
+      { name: "purpose", label: "Purpose of Certificate", type: "select", options: ["Scholarship / Education", "Ration Card Updation", "Government Welfare Subsidy", "Bank Loan Subsidy"], required: true },
+    ],
+  },
+  {
+    id: "s2",
+    title: "Domicile & Nationality Certificate",
+    dept: "Revenue and Forest Department",
+    days: "15 Days",
+    fee: 53,
+    fields: [
+      { name: "applicantName", label: "Full Legal Name", type: "text", placeholder: "e.g. Pooja Anant Shinde", required: true },
+      { name: "yearsInMaharashtra", label: "Continuous Period of Residence in Maharashtra (Years)", type: "number", placeholder: "e.g. 18", required: true },
+      { name: "birthPlace", label: "Place of Birth (Village/City, District)", type: "text", placeholder: "e.g. Satara, Maharashtra", required: true },
+      { name: "rationCardNo", label: "Ration Card / Voter Reference No.", type: "text", placeholder: "e.g. MH-PUN-RC-9810", required: true },
+      { name: "residentialAddress", label: "Permanent Residential Address", type: "textarea", placeholder: "Complete address with PIN code", required: true },
+    ],
+  },
+  {
+    id: "s3",
+    title: "Caste Certificate",
+    dept: "Social Justice Department",
+    days: "21 Days",
+    fee: 53,
+    fields: [
+      { name: "applicantName", label: "Applicant Name", type: "text", placeholder: "Full Name as per School Record", required: true },
+      { name: "casteCategory", label: "Reservation Category", type: "select", options: ["Scheduled Caste (SC)", "Scheduled Tribe (ST)", "Other Backward Class (OBC)", "Vimukta Jati / Nomadic Tribes (VJNT)", "Special Backward Category (SBC)"], required: true },
+      { name: "subCaste", label: "Sub-Caste / Community", type: "text", placeholder: "e.g. Mahar, Maratha-Kunbi, Dhangar", required: true },
+      { name: "pre1967DocType", label: "Ancestral Residence Proof Prior to 1967", type: "select", options: ["Father/Grandfather School Leaving Certificate", "Pre-1967 Birth Register Extract", "Ancestral 7/12 Land Record", "Pahani Patrak Record"], required: true },
+      { name: "familyTreeLineage", label: "Genealogy Details (Father & Grandfather Name)", type: "text", placeholder: "Father: ..., Grandfather: ...", required: true },
+    ],
+  },
+  {
+    id: "s4",
+    title: "Non-Creamy Layer (NCL) Certificate",
+    dept: "Social Justice Department",
+    days: "21 Days",
+    fee: 53,
+    fields: [
+      { name: "applicantName", label: "Applicant Name", type: "text", placeholder: "Legal Name", required: true },
+      { name: "casteCertRef", label: "Existing Caste Certificate Number", type: "text", placeholder: "e.g. CC/REV/2022/9842", required: true },
+      { name: "threeYearsIncome", label: "Total Gross Family Income of Last 3 Years (Combined)", type: "number", placeholder: "e.g. 540000", required: true },
+      { name: "fatherDesignation", label: "Father / Mother Government Employment Category", type: "select", options: ["Not in Government Service", "Class III / Class IV Employee", "Private Employment / Farming"], required: true },
+    ],
+  },
+  {
+    id: "s5",
+    title: "Shop & Establishment (Gumasta License)",
+    dept: "Labour Department",
+    days: "1 Day",
+    fee: 450,
+    fields: [
+      { name: "businessName", label: "Name of Establishment / Enterprise", type: "text", placeholder: "e.g. Sahyadri Agro Products & Logistics", required: true },
+      { name: "natureOfBusiness", label: "Nature of Business Operations", type: "select", options: ["Retail Shop", "Wholesale Trading", "IT / Tech Services Office", "Hotel / Restaurant / Eatery", "Commercial Warehouse"], required: true },
+      { name: "employeeCount", label: "Total Number of Engaged Workers", type: "number", placeholder: "e.g. 6", required: true },
+      { name: "commencementDate", label: "Date of Business Commencement", type: "date", required: true },
+      { name: "premiseAddress", label: "Premise Address & Municipal Ward", type: "textarea", placeholder: "Full shop address with Ward and Pincode", required: true },
+    ],
+  },
+  {
+    id: "s6",
+    title: "Trade License Renewal",
+    dept: "Labour Department",
+    days: "3 Days",
+    fee: 200,
+    fields: [
+      { name: "existingLicenseNo", label: "Existing Municipal Trade License No.", type: "text", placeholder: "e.g. TL-MUM-2023-8821", required: true },
+      { name: "enterpriseName", label: "Trade Establishment Name", type: "text", placeholder: "Business Entity Name", required: true },
+      { name: "fireNocValid", label: "Fire Safety Audit Clearance", type: "select", options: ["Valid & Self-Certified", "Exempted Premise (< 50 sq.m.)"], required: true },
+      { name: "taxReceiptNo", label: "Latest Property Tax Assessment Challan No.", type: "text", placeholder: "e.g. PTX-2025-0091", required: true },
+    ],
+  },
+  {
+    id: "s7",
+    title: "Disability Welfare Assistance",
+    dept: "Public Health Department",
+    days: "10 Days",
+    fee: 0,
+    fields: [
+      { name: "applicantName", label: "Patient / Applicant Name", type: "text", placeholder: "Full Name", required: true },
+      { name: "disabilityType", label: "Type of Disability", type: "select", options: ["Locomotor Disability", "Visual Impairment", "Hearing Impairment", "Multiple Disabilities", "Intellectual Disability"], required: true },
+      { name: "percentageDisability", label: "Disability Percentage as per Medical Board (%)", type: "number", placeholder: "e.g. 45", required: true },
+      { name: "udidNumber", label: "Unique Disability ID (UDID) Card No. (if issued)", type: "text", placeholder: "e.g. MH27101200100982", required: false },
+      { name: "hospitalName", label: "Government District Hospital / Civil Surgeon Name", type: "text", placeholder: "e.g. Sassoon General Hospital, Pune", required: true },
+    ],
+  },
+  {
+    id: "s8",
+    title: "Shetkari Krishi Yojana Assistance",
+    dept: "Agriculture Department",
+    days: "12 Days",
+    fee: 0,
+    fields: [
+      { name: "farmerName", label: "Farmer Name (as on 7/12 Extract)", type: "text", placeholder: "e.g. Balasaheb Tukaram More", required: true },
+      { name: "landAccountNo", label: "8A Khatedar Account Number", type: "text", placeholder: "e.g. KH-88120", required: true },
+      { name: "gutNumber", label: "Survey / Gut Number", type: "text", placeholder: "e.g. Gat No. 142/2A", required: true },
+      { name: "cultivatedCrop", label: "Primary Crop Sown (e-Pik Pahani Registered)", type: "select", options: ["Soybean", "Cotton", "Sugarcane", "Paddy / Rice", "Pulses & Oilseeds", "Horticulture"], required: true },
+      { name: "bankAccountLinked", label: "Direct Benefit Transfer (DBT) Bank IFSC", type: "text", placeholder: "e.g. SBIN0001234", required: true },
+    ],
+  },
 ];
 
 export default function Dashboard({ applications = [], onRefresh, setActiveTab }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
-  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [formInputs, setFormInputs] = useState({});
   const [toastMessage, setToastMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const token = localStorage.getItem("mahasetu_token");
+  const user = JSON.parse(localStorage.getItem("mahasetu_user") || "{}");
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3500);
   };
 
-  const handleApply = async (srv) => {
+  const handleSelectService = (srv) => {
+    setSelectedService(srv);
+    setFormInputs({
+      applicantName: user.name || "",
+    });
+  };
+
+  const handleFormInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormInputs((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmitApplication = async (e) => {
+    e.preventDefault();
+    if (!selectedService) return;
+
     setSubmitting(true);
     try {
       const res = await fetch("http://localhost:5000/api/applications", {
@@ -35,21 +155,23 @@ export default function Dashboard({ applications = [], onRefresh, setActiveTab }
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          service: srv.title,
-          dept: srv.dept,
-          fee: srv.fee,
+          applicantName: formInputs.applicantName || user.name,
+          service: selectedService.title,
+          dept: selectedService.dept,
+          fee: selectedService.fee,
+          formData: formInputs,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to submit application");
 
-      setIsApplyModalOpen(false);
-      triggerToast(`Application submitted! Reference ID: ${data.appId}`);
+      setSelectedService(null);
+      setIsServiceModalOpen(false);
+      setFormInputs({});
+      triggerToast(`Application submitted! ID: ${data.appId}`);
 
-      if (onRefresh) {
-        await onRefresh();
-      }
+      if (onRefresh) await onRefresh();
     } catch (err) {
       triggerToast(err.message || "Network error occurred.");
     } finally {
@@ -59,8 +181,8 @@ export default function Dashboard({ applications = [], onRefresh, setActiveTab }
 
   const filtered = applications.filter((app) => {
     const matches =
-      app.service?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.appId?.toLowerCase().includes(searchQuery.toLowerCase());
+      (app.service || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (app.appId || "").toLowerCase().includes(searchQuery.toLowerCase());
 
     if (selectedFilter === "Pending") return matches && app.status === "Payment Pending";
     if (selectedFilter === "Approved") return matches && app.status === "Approved";
@@ -86,7 +208,10 @@ export default function Dashboard({ applications = [], onRefresh, setActiveTab }
           <p className="text-xs text-slate-500 mt-1">Real-time tracking for official Maharashtra Government e-Services.</p>
         </div>
         <button
-          onClick={() => setIsApplyModalOpen(true)}
+          onClick={() => {
+            setSelectedService(null);
+            setIsServiceModalOpen(true);
+          }}
           className="inline-flex items-center gap-2 bg-[#1b327b] hover:bg-[#142661] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer shadow-sm"
         >
           <span>+</span>
@@ -218,37 +343,145 @@ export default function Dashboard({ applications = [], onRefresh, setActiveTab }
         </div>
       </div>
 
-      {/* Apply Modal */}
-      {isApplyModalOpen && (
+      {/* MODAL 1: Service Catalog Selection */}
+      {isServiceModalOpen && !selectedService && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-sm">Official Maharashtra State Services</h3>
+          <div className="bg-white w-full max-w-xl rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div>
+                <h3 className="font-bold text-slate-800 text-sm">Official Maharashtra State Services</h3>
+                <p className="text-[11px] text-slate-500">Select an electronic service to open the statutory application form</p>
+              </div>
               <button
-                onClick={() => setIsApplyModalOpen(false)}
+                onClick={() => setIsServiceModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 p-1 font-bold text-base cursor-pointer"
               >
                 ✕
               </button>
             </div>
-            <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
+            <div className="p-4 space-y-2.5 max-h-[70vh] overflow-y-auto">
               {availableServices.map((srv) => (
                 <div
                   key={srv.id}
-                  onClick={() => !submitting && handleApply(srv)}
-                  className="p-3 border border-slate-200 rounded-xl hover:border-[#1b327b] hover:bg-blue-50/40 transition cursor-pointer flex items-center justify-between"
+                  onClick={() => handleSelectService(srv)}
+                  className="p-3.5 border border-slate-200 rounded-xl hover:border-blue-900 hover:bg-blue-50/40 transition cursor-pointer flex items-center justify-between group"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-slate-800">{srv.title}</p>
-                    <p className="text-[11px] text-blue-900 font-medium">{srv.dept}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">RTS SLA: {srv.days}</p>
+                    <p className="text-sm font-bold text-slate-800 group-hover:text-blue-900 transition">{srv.title}</p>
+                    <p className="text-[11px] text-slate-600 font-medium">{srv.dept}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">RTS Mandated Delivery: {srv.days}</p>
                   </div>
-                  <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md">
-                    {srv.fee > 0 ? `₹${srv.fee}` : "Free"}
-                  </span>
+                  <div className="text-right">
+                    <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md block">
+                      {srv.fee > 0 ? `₹${srv.fee}` : "Free"}
+                    </span>
+                    <span className="text-[11px] text-blue-700 font-semibold mt-1 inline-block">Fill Form &rarr;</span>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: Dynamic Application Form */}
+      {isServiceModalOpen && selectedService && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div>
+                <span className="text-[10px] font-bold text-blue-900 uppercase tracking-wider">{selectedService.dept}</span>
+                <h3 className="font-bold text-slate-900 text-base">{selectedService.title} Application Form</h3>
+              </div>
+              <button
+                onClick={() => setSelectedService(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitApplication} className="p-6 overflow-y-auto space-y-4 text-xs">
+              <div className="bg-blue-50/70 border border-blue-200 p-3.5 rounded-xl flex items-center justify-between text-slate-700">
+                <div>
+                  <p className="font-bold text-blue-950">Statutory Guarantee (RTS 2015)</p>
+                  <p className="text-[11px] text-slate-600">Disposal Timeline: {selectedService.days}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-[11px] block font-semibold text-slate-500">Statutory Fee</span>
+                  <span className="text-sm font-bold text-slate-900">{selectedService.fee > 0 ? `₹${selectedService.fee}` : "Free of Cost"}</span>
+                </div>
+              </div>
+
+              {/* Dynamic Service Inputs */}
+              <div className="space-y-3.5 pt-2">
+                {selectedService.fields.map((field) => (
+                  <div key={field.name}>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      {field.label} {field.required && <span className="text-rose-500">*</span>}
+                    </label>
+
+                    {field.type === "select" ? (
+                      <select
+                        name={field.name}
+                        required={field.required}
+                        value={formInputs[field.name] || ""}
+                        onChange={handleFormInputChange}
+                        className="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-900 text-xs"
+                      >
+                        <option value="">-- Choose Option --</option>
+                        {field.options.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    ) : field.type === "textarea" ? (
+                      <textarea
+                        name={field.name}
+                        rows="2"
+                        required={field.required}
+                        value={formInputs[field.name] || ""}
+                        onChange={handleFormInputChange}
+                        placeholder={field.placeholder}
+                        className="w-full border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:border-blue-900 text-xs"
+                      ></textarea>
+                    ) : (
+                      <input
+                        type={field.type}
+                        name={field.name}
+                        required={field.required}
+                        value={formInputs[field.name] || ""}
+                        onChange={handleFormInputChange}
+                        placeholder={field.placeholder}
+                        className="w-full border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:border-blue-900 text-xs"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 leading-relaxed">
+                ⚖️ <strong>Legal Undertaking:</strong> By submitting this form, you affirm that the information provided is backed by authentic public records and identity data under the Information Technology Act & Maharashtra RTS Act 2015.
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setSelectedService(null)}
+                  className="text-slate-600 hover:text-slate-800 font-semibold px-3 py-2 cursor-pointer"
+                >
+                  &larr; Back to Services
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="bg-[#1b327b] hover:bg-blue-900 disabled:bg-slate-400 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer"
+                >
+                  {submitting ? "Submitting Application..." : "Confirm & Submit Application"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

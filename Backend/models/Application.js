@@ -25,8 +25,9 @@ const applicationSchema = new mongoose.Schema(
       affidavitValid: { type: Boolean, default: false },
     },
     rejectionReason: { type: String, default: "" },
+    formData: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 );
 
 export default mongoose.model("Application", applicationSchema);

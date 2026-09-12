@@ -38,7 +38,7 @@ Identity Source          : MeriPehchan / DigiLocker e-Vault
 Assigned Scrutiny Desk   : District Collectorate / Tehsil Office
 Statutory Processing Fee : ₹${item.amountDue || 0}
 Department Remarks       : ${item.officialRemarks || "Documents queued for inspection"}
-Rejection Reason         : ${item.rejectionReason || "None"}
+Rejection Reason         : ${item.rejectionReason || "N/A (File Not Rejected)"}
 
 --------------------------------------------------------------------------------
 3. LEGAL DECLARATION UNDER MAHARASHTRA RTS ACT 2015
@@ -77,7 +77,11 @@ and valid according to the official registries of the State of Maharashtra.
           .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
           .meta-table td { padding: 8px 6px; border-bottom: 1px solid #f1f5f9; }
           .meta-table td.label { font-weight: 600; color: #475569; width: 40%; }
-          .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 11px; background: #e0f2fe; color: #0369a1; }
+          .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 11px; }
+          .badge-approved { background: #dcfce7; color: #15803d; }
+          .badge-rejected { background: #fee2e2; color: #b91c1c; }
+          .badge-pending { background: #fef3c7; color: #b45309; }
+          .rejection-box { background: #fef2f2; border: 1px solid #f87171; border-radius: 8px; padding: 12px; margin-top: 15px; color: #991b1b; font-size: 12px; }
           .footer { font-size: 11px; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 15px; margin-top: 20px; }
           .btn-print { background: #1b327b; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 10px; }
           @media print { .btn-print { display: none; } }
@@ -118,7 +122,11 @@ and valid according to the official registries of the State of Maharashtra.
             </tr>
             <tr>
               <td class="label">Application Status:</td>
-              <td><span class="badge">${item.status}</span></td>
+              <td>
+                <span class="badge ${item.status === 'Approved' ? 'badge-approved' : item.status === 'Rejected' ? 'badge-rejected' : 'badge-pending'}">
+                  ${item.status}
+                </span>
+              </td>
             </tr>
             <tr>
               <td class="label">Current Scrutiny Stage:</td>
@@ -126,12 +134,16 @@ and valid according to the official registries of the State of Maharashtra.
             </tr>
           </table>
 
-          <div style="background:#f8fafc; padding:12px; border-radius:8px; font-size:12px; border:1px solid #e2e8f0;">
-            <strong>Tracking Notice:</strong>
-            <p style="margin:4px 0 0; color:#64748b;">
-              Keep this Acknowledgement Token safe. You can track this application on the MAHA-SETU portal using ID <strong>${item.appId}</strong> under <em>Application Tracking (RTS)</em>.
-            </p>
-          </div>
+          ${
+            item.status === "Rejected" && item.rejectionReason
+              ? `
+              <div class="rejection-box">
+                <strong>Statutory Rejection Ground:</strong>
+                <p style="margin: 4px 0 0;">${item.rejectionReason}</p>
+              </div>
+              `
+              : ""
+          }
 
           <div class="footer">
             <p>© Government of Maharashtra • Directorate of Information Technology (DIT)</p>
@@ -177,7 +189,9 @@ and valid according to the official registries of the State of Maharashtra.
           {filteredList.map((item) => (
             <div
               key={item.appId}
-              className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-md transition space-y-4 flex flex-col justify-between"
+              className={`bg-white border rounded-2xl p-5 shadow-xs hover:shadow-md transition space-y-4 flex flex-col justify-between ${
+                item.status === "Rejected" ? "border-rose-300 ring-1 ring-rose-200" : "border-slate-200"
+              }`}
             >
               <div>
                 <div className="flex justify-between items-start">
@@ -208,6 +222,20 @@ and valid according to the official registries of the State of Maharashtra.
                     Stage: <span className="font-semibold">{item.stage}</span>
                   </p>
                 </div>
+
+                {/* Rejection Alert Card */}
+                {item.status === "Rejected" && item.rejectionReason && (
+                  <div className="mt-3 bg-rose-50 border border-rose-200 rounded-xl p-3 space-y-1">
+                    <div className="flex items-center gap-1.5 text-rose-800 font-bold text-xs">
+                      <span>⚠️</span>
+                      <span>Application Rejected</span>
+                    </div>
+                    <p className="text-[11px] text-rose-700 font-medium">
+                      <strong className="text-rose-900">Reason: </strong>
+                      {item.rejectionReason}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="pt-3 border-t border-slate-100 space-y-2">
