@@ -4,7 +4,7 @@ import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
 import AboutSetu from "./components/AboutSetu";
 import HelpSupport from "./components/HelpSupport";
-import Homepage from "./components/mainpages/homepage";
+import Homepage from "./components/mainpages/Homepage";
 import AdminPortal from "./components/AdminPortal";
 
 function ProtectedUserRoute({ children }) {
