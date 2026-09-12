@@ -39,11 +39,11 @@ const Login = ({ defaultRole = "user", onClose, onLoginSuccess }) => {
     const endpoint =
       role === "admin"
         ? mode === "signup"
-          ? "http://localhost:5000/api/auth/admin/signup"
-          : "http://localhost:5000/api/auth/admin/login"
+          ? "https://maha-setu-backend.onrender.com/api/auth/admin/signup"
+          : "https://maha-setu-backend.onrender.com/api/auth/admin/login"
         : mode === "signup"
-        ? "http://localhost:5000/api/auth/citizen/signup"
-        : "http://localhost:5000/api/auth/citizen/login";
+        ? "https://maha-setu-backend.onrender.com/api/auth/citizen/signup"
+        : "https://maha-setu-backend.onrender.com/api/auth/citizen/login";
 
     const payload =
       role === "admin"

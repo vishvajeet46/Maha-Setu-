@@ -148,7 +148,7 @@ export default function Dashboard({ applications = [], onRefresh, setActiveTab }
 
     setSubmitting(true);
     try {
-      const res = await fetch("http://localhost:5000/api/applications", {
+      const res = await fetch("https://maha-setu-backend.onrender.com/api/applications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

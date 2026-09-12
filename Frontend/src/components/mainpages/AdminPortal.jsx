@@ -86,16 +86,16 @@ export default function AdminPortal() {
     setIsRefreshing(true);
     try {
       const [appRes, metRes, inqRes, logRes] = await Promise.all([
-        fetch("http://localhost:5000/api/admin/department/applications", {
+        fetch("https://maha-setu-backend.onrender.com/api/admin/department/applications", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/admin/department/metrics", {
+        fetch("https://maha-setu-backend.onrender.com/api/admin/department/metrics", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/admin/department/inquiries", {
+        fetch("https://maha-setu-backend.onrender.com/api/admin/department/inquiries", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/admin/audit-logs", {
+        fetch("https://maha-setu-backend.onrender.com/api/admin/audit-logs", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -136,7 +136,7 @@ export default function AdminPortal() {
 
     setProcessing(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/department/review/${selectedApp.appId}`, {
+      const res = await fetch(`https://maha-setu-backend.onrender.com/api/admin/department/review/${selectedApp.appId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -152,7 +152,7 @@ export default function AdminPortal() {
       });
 
       if (res.ok) {
-        await fetch("http://localhost:5000/api/admin/audit-logs", {
+        await fetch("https://maha-setu-backend.onrender.com/api/admin/audit-logs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -177,7 +177,7 @@ export default function AdminPortal() {
 
   const handleResolveTicket = async (ticketId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/inquiries/${ticketId}`, {
+      const res = await fetch(`https://maha-setu-backend.onrender.com/api/admin/inquiries/${ticketId}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });

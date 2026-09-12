@@ -8,7 +8,7 @@ export default function Settings() {
 
   const handleSave = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/user/settings", {
+      const res = await fetch("https://maha-setu-backend.onrender.com/api/user/settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

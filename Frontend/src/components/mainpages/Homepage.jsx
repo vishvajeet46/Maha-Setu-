@@ -16,7 +16,7 @@ const Homepage = () => {
   const fetchApplications = async () => {
     if (!token) return;
     try {
-      const res = await fetch("http://localhost:5000/api/applications", {
+      const res = await fetch("https://maha-setu-backend.onrender.com/api/applications", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {

@@ -7,7 +7,7 @@ export default function Payment({ onRefresh }) {
 
   const fetchPayments = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/payments", {
+      const res = await fetch("https://maha-setu-backend.onrender.com/api/payments", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -25,7 +25,7 @@ export default function Payment({ onRefresh }) {
 
   const handlePayNow = async (paymentId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/payments/${paymentId}/pay`, {
+      const res = await fetch(`https://maha-setu-backend.onrender.com/api/payments/${paymentId}/pay`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

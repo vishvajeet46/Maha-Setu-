@@ -19,7 +19,7 @@ export default function Documents() {
 
   const fetchDocs = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/documents", {
+      const res = await fetch("https://maha-setu-backend.onrender.com/api/documents", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -54,7 +54,7 @@ export default function Documents() {
     formData.append("documentName", docLabel || selectedFile.name);
 
     try {
-      const res = await fetch("http://localhost:5000/api/documents/upload", {
+      const res = await fetch("https://maha-setu-backend.onrender.com/api/documents/upload", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -78,7 +78,7 @@ export default function Documents() {
 
   const handleDownloadFile = async (docId, fileName) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/documents/${docId}/download`, {
+      const res = await fetch(`https://maha-setu-backend.onrender.com/api/documents/${docId}/download`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -102,7 +102,7 @@ export default function Documents() {
     if (!window.confirm("Remove this document from your e-Vault?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/documents/${docId}`, {
+      const res = await fetch(`https://maha-setu-backend.onrender.com/api/documents/${docId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
