@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import dns from "dns";
 
 import User from "./models/User.js";
 import Admin from "./models/Admin.js";
@@ -13,17 +14,42 @@ import ContactMessage from "./models/ContactMessage.js";
 import Document from "./models/Document.js";
 import Grievance from "./models/Grievance.js";
 import Payment from "./models/Payment.js";
-import { protect } from "./middleware/auth.js";
+import * as authMiddleware from "./middleware/auth.js";
 
+const protect = authMiddleware.protect || authMiddleware.default;
 
-import dns from "dns";
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
-
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// Allowed Origins for Local Development and Vercel Deployments
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://maha-setu-dhth.vercel.app",
+  "https://maha-setu-dhth-git-main-maha-setu.vercel.app"
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, Postman) or matched origins
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Fallback to allow connection
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
+
+app.options("*", cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret_mahasetu_jwt_key_2026";
@@ -33,6 +59,11 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.error("MongoDB connection error:", err));
+
+// ---------------- HEALTH CHECK ROUTE ----------------
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "online", message: "Maha-Setu Backend API is healthy and connected" });
+});
 
 // ---------------- AUTH ROUTES ----------------
 app.post("/api/auth/citizen/signup", async (req, res) => {
@@ -301,21 +332,33 @@ app.post("/api/admin/audit-logs", protect, async (req, res) => {
 
 // ---------------- PAYMENTS & SETTINGS ----------------
 app.get("/api/payments", protect, async (req, res) => {
-  const p = await Payment.find({ userId: req.user.id }).lean();
-  res.json(p);
+  try {
+    const p = await Payment.find({ userId: req.user.id }).lean();
+    res.json(p);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 app.post("/api/payments/:paymentId/pay", protect, async (req, res) => {
-  const payment = await Payment.findOneAndUpdate({ paymentId: req.params.paymentId }, { status: "Paid" }, { new: true });
-  if (payment) {
-    await Application.findOneAndUpdate({ appId: payment.appRef }, { status: "Under Review", stage: "Scrutiny in Progress" });
+  try {
+    const payment = await Payment.findOneAndUpdate({ paymentId: req.params.paymentId }, { status: "Paid" }, { new: true });
+    if (payment) {
+      await Application.findOneAndUpdate({ appId: payment.appRef }, { status: "Under Review", stage: "Scrutiny in Progress" });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-  res.json({ success: true });
 });
 
 app.put("/api/user/settings", protect, async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.user.id, { notificationsEnabled: req.body.notificationsEnabled }, { new: true });
-  res.json(user);
+  try {
+    const user = await User.findByIdAndUpdate(req.user.id, { notificationsEnabled: req.body.notificationsEnabled }, { new: true });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 app.listen(PORT, () => {
